@@ -1,2 +1,2 @@
-# nek_slip
+# slip_velocity
 Slip velocity across elements
