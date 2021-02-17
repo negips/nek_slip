@@ -15,6 +15,7 @@
 **/*.restart
 **/*.eps
 **/*.png
+**/*.mp4
 **/*.xml
 **/obj/
 **/makefile

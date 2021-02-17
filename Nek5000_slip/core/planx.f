@@ -33,11 +33,6 @@ C
 
       common /testvel2/ ut4,ut5,ut6
 
-      COMMON /SCRUZ/ W1    (LX1,LY1,LZ1,LELV)
-     $ ,             W2    (LX1,LY1,LZ1,LELV)
-     $ ,             W3    (LX1,LY1,LZ1,LELV)
-
-
 C
       IF (IGEOM.EQ.1) THEN
 C
@@ -53,10 +48,10 @@ C
          call sethlm  (h1,h2,intype)
 
 !        prabal
+!        ut1, ut2, ut3 ---> Contains slip velocity arrays   
          call opzero  (ut4,ut5,ut6)
-         call ophx    (ut4,ut5,ut6,ut1,ut2,ut3,h1,h2)
-         call opsub2  (bfx,bfy,bfz,ut4,ut5,ut6)
-!         call opsub2  (vx,vy,vz,ut1,ut2,ut3)
+         call ophx    (ut4,ut5,ut6,ut1,ut2,ut3,h1,h2)       ! Ax
+         call opsub2  (bfx,bfy,bfz,ut4,ut5,ut6)             ! bfx - Ax
 
 
          call cresvif (resv1,resv2,resv3,h1,h2)
@@ -64,9 +59,7 @@ C
          call opadd2  (vx,vy,vz,dv1,dv2,dv3)
 
 !        prabal
-         call opcopy(ut4,ut5,ut6,vx,vy,vz) 
-         call opadd2(vx,vy,vz,ut1,ut2,ut3)
-
+         call opadd2(vx,vy,vz,ut1,ut2,ut3)            ! Add slip velocity back
 c
          call incomprn(vx,vy,vz,pr)
 C
@@ -131,18 +124,15 @@ C---------------------------------------------------------------------
       if (igeom.eq.2) CALL LAGVEL
 
 !     prabal
-!      call opsub2  (vx,vy,vz,ut1,ut2,ut3)
-      call opzero(vx,vy,vz)
- 
+      call opzero(vx,vy,vz)   ! zero out velocity field
+                              ! (before BCs are applied).
+
       CALL BCDIRVC (VX,VY,VZ,v1mask,v2mask,v3mask)
       CALL BCNEUTR
 C
       call extrapp (pr,prlag)
       call opgradt (resv1,resv2,resv3,pr)
-!     prabal
       CALL OPADD2  (RESV1,RESV2,RESV3,BFX,BFY,BFZ)
-!      call opcopy(resv1,resv2,resv3,bfx,bfy,bfz)
-
 
       CALL OPHX    (W1,W2,W3,VX,VY,VZ,H1,H2)
       CALL OPSUB2  (RESV1,RESV2,RESV3,W1,W2,W3)
