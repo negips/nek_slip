@@ -69,12 +69,19 @@ c-----------------------------------------------------------------------
       include 'TSTEP'
 !      include 'TOTAL'
 
+      integer ntot1
+
       call slp_mark_faces()
 
       ifto = .true.
-      call outpost(vx,vy,vz,pr,vz,'   ')
 
-      if (istep.eq.0) call init_3ds
+      ntot1 = lx1*ly1*lz1*nelv      
+      call copy(t,vz,ntot1)
+
+      if (istep.eq.0) then
+        call outpost(vx,vy,vz,pr,t,'   ')
+        call init_3ds
+      endif
 
 !      call exitt
 
@@ -111,9 +118,10 @@ c-----------------------------------------------------------------------
 
       real C, k, kx, ky
 
-      ux = 1.0 + (1.0e-0)*rand()
+!      ux = 1.0 + (1.0e-1)*rand()
+      ux = 0.0 + 0.5*y
       uy = 0.0 + (1.0e-0)*rand()
-      uz = 0.0 + y
+      uz = 0.0 + 1.0*y
 
       return
       end

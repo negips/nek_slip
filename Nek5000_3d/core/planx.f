@@ -35,10 +35,6 @@ C
 
       common /testvel2/ ut4,ut5,ut6
 
-      real bfz_3ds(lx1,ly1,lz1,lelv)
-      logical if3d_3ds
-      common /solv_3ds/ bfz_3ds,if3d_3ds
-
 
 !     prabal
       if (if3d_3ds) then

@@ -180,6 +180,10 @@ c-----------------------------------------------------------------------
      $ ,             ta2 (lx1,ly1,lz1,lelv)
      $ ,             ta3 (lx1,ly1,lz1,lelv)
 
+      integer ntot1
+
+      ntot1 = lx1*ly1*lz1*nelv
+
 
       ab0 = ab(1)
       ab1 = ab(2)
@@ -315,6 +319,8 @@ c
       include 'SIZE'
       include 'TOTAL'
 
+      include '3DS'
+
       real           resv1 (lx1,ly1,lz1,1)
       real           resv2 (lx1,ly1,lz1,1)
       real           resv3 (lx1,ly1,lz1,1)
@@ -339,13 +345,11 @@ c
 !
 !      common /testvel2/ ut4,ut5,ut6
 
-      real bfz_3ds(lx1,ly1,lz1,lelv)
-      logical if3d_3ds
-      common /solv_3ds/ bfz_3ds,if3d_3ds
-
+      
 
       ntot1 = lx1*ly1*lz1*nelv
       ntot2 = lx2*ly2*lz2*nelv
+
       if (igeom.eq.2) call lagvel
 
 !     prabal
@@ -367,9 +371,12 @@ c
 
       call extrapp (pr,prlag)
       call opgradt (resv1,resv2,resv3,pr)
+!      call opzero(resv1,resv2,resv3)
+      call rzero(resv3,ntot1)             ! homogeneous in z
 
-      call copy(bfz,bfz_3d,ntot1)
+      call copy(bfz,bfz_3ds,ntot1)
       call opadd2  (resv1,resv2,resv3,bfx,bfy,bfz)
+      call add2(resv3,bfz,ntot1)
 
 !     prabal
       call ophx_3ds(w1,w2,w3,vx,vy,vz,h1,h2)
@@ -434,12 +441,27 @@ c
 !!        for introducing slip across element faces   
 !!        ut1, ut2, ut3 ---> contains slip velocity arrays   
 !         call opzero  (ut4,ut5,ut6)
-!         call ophx    (ut4,ut5,ut6,ut1,ut2,ut3,h1,h2)       ! ax
-!         call opsub2  (bfx,bfy,bfz,ut4,ut5,ut6)             ! bfx - ax
+!         call ophx    (ut4,ut5,ut6,ut1,ut2,ut3,h1,h2)       ! Ax
+!         call opsub2  (bfx,bfy,bfz,ut4,ut5,ut6)             ! bfx - Ax
 !-------------------------------------------------- 
 
          call cresvif_3ds (resv1,resv2,resv3,h1,h2)
-      
+
+!         debugging  
+!         call opcopy(vx,vy,vz,resv1,resv2,resv3)
+!         call copy(vz,resv3,ntot1)      
+!         call outpost(vx,vy,vz,pr,vz,'   ')
+!         call exitt
+
+!         debugging  
+!         call opcopy(vx,vy,vz,bfx,bfy,bfz)
+!         call copy(vz,bfz,ntot1)      
+!         call outpost(vx,vy,vz,pr,vz,'   ')
+!         call exitt
+
+!         call copy(resv1,resv3,ntot1)    
+ 
+     
          if3d = .true. 
          call ophinv  (dv1,dv2,dv3,resv1,resv2,resv3,h1,h2,tolhv,nmxv)
          if3d = .false.   
@@ -450,8 +472,11 @@ c
 !!        prabal
 !         call opadd2(vx,vy,vz,ut1,ut2,ut3)            ! add slip velocity back
 
-
-         call exitt   
+!         debugging  
+!         call opcopy(vx,vy,vz,dv1,dv2,dv3)
+!         call copy(vz,dv3,ntot1)      
+!         call outpost(vx,vy,vz,pr,vz,'   ')   
+!         call exitt   
 
          call incomprn(vx,vy,vz,pr)
 
