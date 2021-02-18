@@ -69,7 +69,14 @@ c-----------------------------------------------------------------------
       include 'TSTEP'
 !      include 'TOTAL'
 
-      call slp_mark_faces()      
+      call slp_mark_faces()
+
+      ifto = .true.
+      call outpost(vx,vy,vz,pr,vz,'   ')
+
+      if (istep.eq.0) call init_3ds
+
+!      call exitt
 
       return
       end
@@ -79,11 +86,16 @@ c-----------------------------------------------------------------------
       include 'TOTAL'
       include 'NEKUSE'
 
-      if (y.lt.0) ux = -1.0
-      if (y.gt.0) ux = 1.0
+      if (y.lt.0) then
+         ux = -1.0
+         uz = -0.5
+      else
+         ux = 1.0
+         uz = 0.5
+      endif   
 
       uy = 0.
-      uz = 0.
+!      uz = 0.
 
       return
       end
@@ -100,8 +112,8 @@ c-----------------------------------------------------------------------
       real C, k, kx, ky
 
       ux = 1.0 + (1.0e-0)*rand()
-      uy = 0.0
-      uz = 0.0
+      uy = 0.0 + (5.0e-0)*rand()
+      uz = 0.0 + y
 
       return
       end

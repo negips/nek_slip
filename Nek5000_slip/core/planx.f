@@ -33,12 +33,22 @@ C
 
       common /testvel2/ ut4,ut5,ut6
 
+      real bfz_3ds(lx1,ly1,lz1,lelv)
+      logical if3d_3ds
+      common /solv_3ds/ bfz_3ds,if3d_3ds
+
+
+
 C
       IF (IGEOM.EQ.1) THEN
 C
 C        Old geometry
 C
          CALL MAKEF
+
+!        prabal
+         call makef_3ds
+
 C
       ELSE
 C
@@ -47,12 +57,15 @@ C
          intype = -1
          call sethlm  (h1,h2,intype)
 
+
+!-------------------------------------------------- 
 !        prabal
+!        For introducing slip across element faces   
 !        ut1, ut2, ut3 ---> Contains slip velocity arrays   
          call opzero  (ut4,ut5,ut6)
          call ophx    (ut4,ut5,ut6,ut1,ut2,ut3,h1,h2)       ! Ax
          call opsub2  (bfx,bfy,bfz,ut4,ut5,ut6)             ! bfx - Ax
-
+!-------------------------------------------------- 
 
          call cresvif (resv1,resv2,resv3,h1,h2)
          call ophinv  (dv1,dv2,dv3,resv1,resv2,resv3,h1,h2,tolhv,nmxv)
@@ -124,10 +137,21 @@ C---------------------------------------------------------------------
       if (igeom.eq.2) CALL LAGVEL
 
 !     prabal
-      call opzero(vx,vy,vz)   ! zero out velocity field
-                              ! (before BCs are applied).
+!     for 3d solve
+      if (igeom.eq.2) call lagvel_3ds
 
+!     prabal
+!      call opzero(vx,vy,vz)   ! zero out velocity field
+!                              ! (before BCs are applied).
+
+      if3d = .true.
       CALL BCDIRVC (VX,VY,VZ,v1mask,v2mask,v3mask)
+      if3d = .false.
+
+!     prabal
+!      call outpost(vx,vy,vz,pr,vz,'   ')
+!      call exitt
+
       CALL BCNEUTR
 C
       call extrapp (pr,prlag)
