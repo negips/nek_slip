@@ -317,19 +317,6 @@ c
       common /orthbi/ nprv(2)
       logical ifprjp
 
-!     prabal
-      real ut1(lx1,ly1,lz1,lelt)
-      real ut2(lx1,ly1,lz1,lelt)
-      real ut3(lx1,ly1,lz1,lelt)
-      integer flowtype(lelt)
-      common /testvel1/ ut1,ut2,ut3,flowtype
-
-      real ut4(lx1,ly1,lz1,lelt)
-      real ut5(lx1,ly1,lz1,lelt)
-      real ut6(lx1,ly1,lz1,lelt)
-
-      common /testvel2/ ut4,ut5,ut6
-
       ifprjp=.false.    ! Project out previous pressure solutions?
       istart=param(95)  
       if (istep.ge.istart.and.istart.ne.0) ifprjp=.true.
@@ -351,13 +338,6 @@ c
 
       bdti = -bd(1)/dt
       call cmult   (dp,bdti,ntot2)
-
-!     prabal
-!      call rzero(usrdiv,ntot2)
-!      call opdiv(usrdiv,ut1,ut2,ut3)
-!      scaledt = bd(1)/dt
-!      call cmult(usrdiv,scaledt,ntot2) 
-
       call add2col2(dp,bm2,usrdiv,ntot2) ! User-defined divergence.
 
       call ortho   (dp)
@@ -377,11 +357,6 @@ c
       call opbinv   (dv1,dv2,dv3,w1 ,w2 ,w3 ,h2inv)
       dtb  = dt/bd(1)
       call opadd2cm (ux ,uy ,uz ,dv1,dv2,dv3, dtb )
-
-!     prabal
-!      call opcopy(ut4,ut5,ut6,ux,uy,uz)
-!      call opsub2(ux,uy,uz,ut1,ut2,ut3)
-
 
       if (ifmhd)  call chkptol	! to avoid repetition
 

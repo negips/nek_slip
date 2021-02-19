@@ -69,14 +69,18 @@ c-----------------------------------------------------------------------
       include 'TSTEP'
 !      include 'TOTAL'
 
+      include 'TEST'
+
       integer ntot1
 
-      call slp_mark_faces()
+!      call slp_mark_faces()
 
       ifto = .true.
 
       ntot1 = lx1*ly1*lz1*nelv      
       call copy(t,vz,ntot1)
+
+!      call outpost(tmp1,tmp2,tmp3,pr,tmp3,'tmp')
 
       if (istep.eq.0) then
         call outpost(vx,vy,vz,pr,t,'   ')
@@ -95,10 +99,10 @@ c-----------------------------------------------------------------------
 
       if (y.lt.0) then
          ux = -1.0
-         uz = -0.5
+         uz = -1.0
       else
          ux = 1.0
-         uz = 0.5
+         uz = 1.0
       endif   
 
       uy = 0.
@@ -120,8 +124,9 @@ c-----------------------------------------------------------------------
 
 !      ux = 1.0 + (1.0e-1)*rand()
       ux = 0.0 + 0.5*y
-      uy = 0.0 + (1.0e-0)*rand()
-      uz = 0.0 + 1.0*y
+!      uy = 0.0 + (1.0e-0)*rand()
+      uy = -sin(pi*y)
+      uz = 0.0 + 0.5*y
 
       return
       end

@@ -74,9 +74,9 @@
       call makeuf_3ds
 
       if3d = .true.
-      if (filterType.eq.2) call make_hpf
+!      if (filterType.eq.2) call make_hpf
 !     hpf field stored in ta3
-      call xaddcol3(bfz_3ds,ta3,bm1,ntot1)
+!      call xaddcol3(bfz_3ds,ta3,bm1,ntot1)
       if3d = .false. 
 
 !     Put vx,vy,vz on Dealiased grid (rst form)
@@ -88,6 +88,7 @@
 !      call admeshv      ! subroutine not defined yet
 
       if (iftran) call makeabf_3ds
+
       if ((iftran.and..not.ifchar).or.
      $    (iftran.and..not.ifnav.and.ifchar)) call makebdf_3ds
 
@@ -101,19 +102,23 @@
 
 !     Compute and add: (1) user specified forcing function (FX,FY,FZ)
 
+      implicit none
+
       include 'SIZE'
       include 'SOLN'
       include 'MASS'
       include 'TSTEP'
       include 'PARALLEL'
+      include 'NEKUSE'
 
       include '3DS'
 
+      real ta1,ta2,ta3
       common /scruz/ ta1 (lx1,ly1,lz1,lelv)
      $ ,             ta2 (lx1,ly1,lz1,lelv)
      $ ,             ta3 (lx1,ly1,lz1,lelv)
 
-      integer ntot1
+      integer ntot1,iel,i,j,k,ielg
 
 
       ntot1 = lx1*ly1*lz1*nelv
@@ -143,6 +148,8 @@
 !     Eulerian scheme, add convection term to forcing function 
 !     at current time step.
 
+      implicit none
+
       include 'SIZE'
       include 'SOLN'
       include 'MASS'
@@ -150,13 +157,24 @@
 
       include '3DS'
 
+      include 'TEST'
+
+      real ta1,ta2,ta3
       common /scruz/ ta1 (lx1,ly1,lz1,lelv)
      $ ,             ta2 (lx1,ly1,lz1,lelv)
      $ ,             ta3 (lx1,ly1,lz1,lelv)
 
+      integer ntot1
+
       ntot1 = lx1*ly1*lz1*nelv
-      call convop  (ta3,vz)
-      call subcol3 (bfz,bm1,ta3,ntot1)
+
+!      call setup_convect(2)
+
+      call convop  (ta3,ta1)
+      call subcol3 (bfz_3ds,ta3,bm1,ntot1)
+
+!     prabal
+!      call copy(tmp3,ta3,ntot1)
 
 
       return
@@ -168,6 +186,8 @@ c-----------------------------------------------------------------------
 !     Eulerian scheme, add convection term to forcing function 
 !     at current time step.
 
+      implicit none
+
       include 'SIZE'
       include 'SOLN'
       include 'MASS'
@@ -176,11 +196,14 @@ c-----------------------------------------------------------------------
 
       include '3DS'
 
+
+      real ta1,ta2,ta3
       common /scruz/ ta1 (lx1,ly1,lz1,lelv)
      $ ,             ta2 (lx1,ly1,lz1,lelv)
      $ ,             ta3 (lx1,ly1,lz1,lelv)
 
       integer ntot1
+      real ab0,ab1,ab2
 
       ntot1 = lx1*ly1*lz1*nelv
 
@@ -199,9 +222,11 @@ c-----------------------------------------------------------------------
 
 !-----------------------------------------------------------------------
       subroutine makebdf_3ds
-!
+
 !     Add contributions to F from lagged BD terms.
-!
+
+      implicit none
+
       include 'SIZE'
       include 'SOLN'
       include 'MASS'
@@ -211,6 +236,7 @@ c-----------------------------------------------------------------------
 
       include '3DS'
 
+      real ta1,ta2,ta3,tb1,tb2,tb3,h2
       common /scrns/ ta1(lx1,ly1,lz1,lelv)
      $ ,             ta2(lx1,ly1,lz1,lelv)
      $ ,             ta3(lx1,ly1,lz1,lelv)
@@ -219,6 +245,9 @@ c-----------------------------------------------------------------------
      $ ,             tb3(lx1,ly1,lz1,lelv)
      $ ,             h2 (lx1,ly1,lz1,lelv)
 
+
+      integer ilag,ntot1
+      real const
 
       ntot1 = lx1*ly1*lz1*nelv
       const = 1./dt
@@ -241,9 +270,8 @@ c-----------------------------------------------------------------------
          else
             call col3(ta3,vzlag(1,1,1,1,ilag-1),bm1,ntot1)
             call cmult(ta3,bd(ilag+1),ntot1)
-
          endif
-         call add2  (tb3,ta3,ntot1)
+         call add2 (tb3,ta3,ntot1)
  100  continue
       call xaddcol3(bfz_3ds,tb3,h2,ntot1)     
 
@@ -279,6 +307,8 @@ c-----------------------------------------------------------------------
 
 !     OUT = (H1*A+H2*B) * INP  
 
+      implicit none
+
       include 'SIZE'
       include 'INPUT'
       include 'SOLN'
@@ -294,9 +324,12 @@ c-----------------------------------------------------------------------
       real inp3 (lx1,ly1,lz1,1)
       real h1   (lx1,ly1,lz1,1)
       real h2   (lx1,ly1,lz1,1)
-c
+
+      integer imesh,matmod
+      
+
       imesh = 1
-c
+
       if (ifstrs) then
          matmod = 0
          call axhmsf (out1,out2,out3,inp1,inp2,inp3,h1,h2,matmod)
@@ -317,7 +350,11 @@ c
 !     Compute startresidual/right-hand-side in the velocity solver
 
       include 'SIZE'
-      include 'TOTAL'
+      include 'INPUT'
+      include 'SOLN'
+      
+
+!      include 'TOTAL'
 
       include '3DS'
 
@@ -330,7 +367,10 @@ c
      $ ,             w2    (lx1,ly1,lz1,lelv)
      $ ,             w3    (lx1,ly1,lz1,lelv)
 
+      integer igeom
       common /cgeom/ igeom
+
+      integer ntot1,ntot2
 
 !!     prabal
 !      real ut1(lx1,ly1,lz1,lelt)
@@ -375,7 +415,7 @@ c
       call rzero(resv3,ntot1)             ! homogeneous in z
 
       call copy(bfz,bfz_3ds,ntot1)
-      call opadd2  (resv1,resv2,resv3,bfx,bfy,bfz)
+      call opadd2(resv1,resv2,resv3,bfx,bfy,bfz)
       call add2(resv3,bfz,ntot1)
 
 !     prabal
@@ -391,6 +431,8 @@ c
 !     Compute pressure and velocity using consistent approximation spaces.     
 !     Operator splitting technique.
 
+      implicit none
+
       include 'SIZE'
       include 'INPUT'
       include 'EIGEN'
@@ -399,6 +441,9 @@ c
 
       include '3DS'
 
+      real resv1,resv2,resv3
+      real dv1,dv2,dv3
+      real h1,h2
       common /scrns/  resv1 (lx1,ly1,lz1,lelv)
      $ ,              resv2 (lx1,ly1,lz1,lelv)
      $ ,              resv3 (lx1,ly1,lz1,lelv)
@@ -420,6 +465,13 @@ c
 
       common /testvel2/ ut4,ut5,ut6
 
+      integer intype
+      integer igeom
+      integer ntot1
+
+
+
+      ntot1 = lx1*ly1*lz1*nelv   
 
       if (igeom.eq.1) then
 
@@ -463,11 +515,13 @@ c
  
      
          if3d = .true. 
-         call ophinv  (dv1,dv2,dv3,resv1,resv2,resv3,h1,h2,tolhv,nmxv)
+         call ophinv(dv1,dv2,dv3,resv1,resv2,resv3,h1,h2,tolhv,nmxv)
          if3d = .false.   
 
-         call opadd2  (vx,vy,vz,dv1,dv2,dv3)
-         call add2(vz,dv3,ntot1)   
+
+         call opadd2(vx,vy,vz,dv1,dv2,dv3)
+         call add2(vz,dv3,ntot1) 
+            
 
 !!        prabal
 !         call opadd2(vx,vy,vz,ut1,ut2,ut3)            ! add slip velocity back
