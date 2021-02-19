@@ -6,6 +6,66 @@
 !
 !====================================================================== 
 !-----------------------------------------------------------------------
+      subroutine perturbv_3ds (igeom)
+
+      implicit none
+
+!     Solve the convection-diffusion equation for the perturbation field, 
+!     with projection onto a div-free space.
+
+
+      include 'SIZE'
+      include 'INPUT'
+      include 'EIGEN'
+      include 'SOLN'
+      include 'TSTEP'
+      include 'MASS'
+
+      real resv1,resv2,resv3
+      real dv1,dv2,dv3
+      real h1,h2
+
+      common /scrns/  resv1 (lx1,ly1,lz1,lelv)
+     $ ,              resv2 (lx1,ly1,lz1,lelv)
+     $ ,              resv3 (lx1,ly1,lz1,lelv)
+     $ ,              dv1   (lx1,ly1,lz1,lelv)
+     $ ,              dv2   (lx1,ly1,lz1,lelv)
+     $ ,              dv3   (lx1,ly1,lz1,lelv)
+      common /scrvh/  h1    (lx1,ly1,lz1,lelv)
+     $ ,              h2    (lx1,ly1,lz1,lelv)
+
+      integer intype
+
+      ifield = 1
+
+      if (igeom.eq.1) then
+
+!        Old geometry, old velocity
+
+         call makefp
+         call lagfieldp
+
+!        Add third component of convective term   
+!         call advab_w_3ds   
+
+      else
+c
+c        New geometry, new velocity
+c
+         intype = -1
+         call sethlm_3dsp(h1,h2,intype)
+         call cresvipp_3ds(resv1,resv2,resv3,h1,h2)
+
+         call ophinv   (dv1,dv2,dv3,resv1,resv2,resv3,h1,h2,tolhv,nmxv)
+         call opadd2   (vxp(1,jp),vyp(1,jp),vzp(1,jp),dv1,dv2,dv3)
+         call incomprp (vxp(1,jp),vyp(1,jp),vzp(1,jp),prp(1,jp))
+c
+      endif
+c
+      return
+      end subroutine perturbv_3dsp
+!-----------------------------------------------------------------------
+
       subroutine plan3_3ds (igeom)
 
 !     Compute pressure and velocity using consistent approximation spaces.     
@@ -57,9 +117,8 @@
 
 !        old geometry
 
-         call makef
-
-         call makef_3ds
+         call makefp
+         call makef_3dsp
 
       else
 
@@ -121,12 +180,12 @@
 
 !----------------------------------------------------------------------
 
-
-      subroutine init_3ds()
+      subroutine init_3dsp()
 
       implicit none
 
       include 'SIZE'
+      include 'INPUT'
       include 'SOLN'
 
       include '3DS'
@@ -143,9 +202,19 @@
 
       if3d_3ds = .true.
 
+      if (if3d_3ds.and.npert.ne.2) then
+        write(6,'(A7,1x,I2)') 'NPERT =', npert
+        write(6,*) 'Need both real and imaginary parts'
+        write(6,*) 'Ensure NPERT = 2 for 3D perturbation solve'
+        call exitt
+      endif
+
+      k_3dsp = 1.0            ! wavenumber 
+     
+      call init_pertfld_3dsp() 
+
 !     Need to initialize some variables
 !     V3MASK
-
       call copy(v3mask,v1mask,ntot1)
 
 !     Velocities can be initialized from useric. 
@@ -155,6 +224,26 @@
       end subroutine init_3ds
 !----------------------------------------------------------------------
 
+      subroutine init_pertfld_3dsp
+
+      implicit none
+
+      include 'SIZE'
+      include 'SOLN'    ! jp
+      include 'TSTEP'   ! ifield
+
+      integer i,jp
+
+
+      do i = 1,2
+        jp = i
+        call nekuic
+      enddo
+      jp = 0
+
+      return
+      end subroutine init_pertfld_3dsp
+!----------------------------------------------------------------------
       subroutine makef_3ds
 
       implicit none
@@ -542,8 +631,63 @@ c-----------------------------------------------------------------------
       end subroutine cresvif_3ds
 !-----------------------------------------------------------------------
 
+      subroutine sethlm_3dsp(h1,h2,intype)
+
+      implicit none
+
+c     Set the variable property arrays H1 and H2
+c     in the Helmholtz equation.
+c     (associated with variable IFIELD)
+c     INTLOC =      integration type
+
+      include 'SIZE'
+      include 'INPUT'
+      include 'SOLN' 
+      include 'TSTEP'   ! ifield
+
+      include '3DS'
+
+      real h1(1),h2(1)
+
+      integer intype
+      integer nel,ntot1
+
+      real k2
+
+      nel   = nelfld(ifield)
+      ntot1 = lx1*ly1*lz1*nel
+
+      k2    = k_3dsp**2
+
+      if (iftran) then
+         dtbd = bd(1)/dt
+         call copy  (h1,vdiff (1,1,1,1,ifield),ntot1)
+         if (intloc.eq.0) then
+            call rzero (h2,ntot1)
+         else
+            call cmult2(h2,vtrans(1,1,1,1,ifield),dtbd,ntot1)
+
+!           Add second derivative of the 3rd direction to the operator
+            call add2s2(h2,vdiff(1,1,1,1,ifield),k2,ntot1)
+         endif
+      else
+         call copy  (h1,vdiff (1,1,1,1,ifield),ntot1)
+         call rzero (h2,ntot1)
+
+!        Add second derivative of the 3rd direction to the operator
+         call add2s2(h2,vdiff(1,1,1,1,ifield),k2,ntot1)
+      endif
+
+
+      return
+      end subroutine sethlm_3dsp
 
 !----------------------------------------------------------------------
+
+
+
+
+
 
 
 
