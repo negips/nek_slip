@@ -2,7 +2,8 @@
 
 
       real bfz_3ds(lx1,ly1,lz1,lelv)
-      common /solv_3dsrv/ bfz_3ds
+      real prextr_3ds(lx2*ly2*lz2*lelv,2)     ! Need to save two extrapolated pressures
+      common /solv_3dsrv/ bfz_3ds,prextr_3ds
 
       logical if3d_3ds
       common /solv_3dsl/ if3d_3ds

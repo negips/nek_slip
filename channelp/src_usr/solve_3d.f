@@ -521,7 +521,6 @@ c-----------------------------------------------------------------------
 
          call opadd2(vx,vy,vz,dv1,dv2,dv3)
          call add2(vz,dv3,ntot1) 
-            
 
 !!        prabal
 !         call opadd2(vx,vy,vz,ut1,ut2,ut3)            ! add slip velocity back

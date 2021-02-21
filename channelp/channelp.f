@@ -83,9 +83,15 @@ c-----------------------------------------------------------------------
 !      call outpost(tmp1,tmp2,tmp3,pr,tmp3,'tmp')
 
       if (istep.eq.0) then
-        call outpost(vx,vy,vz,pr,t,'   ')
-        call init_3ds
+!        call outpost(vx,vy,vz,pr,t,'   ')
+        call initp_3ds
       endif
+
+      do jp=1,2
+        call outpost(vxp(1,jp),vyp(1,jp),vzp(1,jp),
+     $               prp(1,jp),vzp(1,jp),'prt')
+      enddo
+
 
 !      call exitt
 
@@ -98,11 +104,11 @@ c-----------------------------------------------------------------------
       include 'NEKUSE'
 
       if (y.lt.0) then
-         ux = -1.0
-         uz = -1.0
+         ux = 0.0
+         uz = 0.0
       else
-         ux = 1.0
-         uz = 1.0
+         ux = 0.0
+         uz = 0.0
       endif   
 
       uy = 0.
@@ -112,21 +118,29 @@ c-----------------------------------------------------------------------
       end
 c-----------------------------------------------------------------------
       subroutine useric (ix,iy,iz,ieg)
+
+      implicit none
+
       include 'SIZE'
-      include 'TOTAL'
+      include 'PARALLEL'
+!      include 'TOTAL'
       include 'NEKUSE'
 
-      integer idum
-      save    idum 
-      data    idum / 0 /
+      integer ix,iy,iz,ieg
 
-      real C, k, kx, ky
+      integer jp
+      common /ppointr/ jp
 
-!      ux = 1.0 + (1.0e-1)*rand()
-      ux = 0.0 + 0.5*y
-!      uy = 0.0 + (1.0e-0)*rand()
-      uy = -sin(pi*y)
-      uz = 0.0 + 0.5*y
+      if (jp.eq.0) then
+        ux = 0.0 + 1.0*y
+        uy = 0.
+        uz = 0.0 + 0.5*y
+      else
+        ux = (1.0e-1)*rand()
+        uy = (1.0e-1)*rand()
+        uz = (1.0e-1)*rand()
+      endif
+
 
       return
       end
@@ -194,3 +208,24 @@ c-----------------------------------------------------------------------
       return
       end
 c-----------------------------------------------------------------------
+
+c automatically added by makenek
+      subroutine usrdat0() 
+
+      return
+      end
+
+c automatically added by makenek
+      subroutine usrsetvert(glo_num,nel,nx,ny,nz) ! to modify glo_num
+      integer*8 glo_num(1)
+
+      return
+      end
+
+c automatically added by makenek
+      subroutine userqtl
+
+      call userqtl_scig
+
+      return
+      end

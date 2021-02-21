@@ -1494,12 +1494,6 @@ C
 #endif
 
       CALL OPRZERO (F1,F2,F3)
-!     iffour
-      if (iffour.and.(ndim.eq.2)) then
-        call rzero(f3,nx1*ny1*nz1*nelv)
-      endif
-
-
       DO 100 IEL=1,NELV
          ielg = lglel(iel)
          DO 100 K=1,lz1

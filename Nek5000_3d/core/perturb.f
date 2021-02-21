@@ -8,6 +8,14 @@ c
       include 'TSTEP'
       include 'SOLN'
 
+      include '3DS'
+
+      if (if3d_3ds) then
+        call fluidp_3ds(igeom)
+        return
+      endif
+
+
       do jp=1,npert
 
          if (nio.eq.0.and.igeom.eq.2) write(6,1) istep,time,jp
@@ -78,11 +86,6 @@ c
       include 'INPUT'
       include 'SOLN'
       include 'TSTEP'
-
-      integer ntot1     ! iffour
-
-      ntot1 = lx1*ly1*lz1*nelv      ! iffour
-
 c
       do ilag=nbdinp-1,2,-1
          call opcopy
@@ -91,16 +94,6 @@ c
       enddo
       call opcopy(vxlagp(1,1,jp),vylagp(1,1,jp),vzlagp(1,1,jp)
      $           ,vxp   (1,jp)  ,vyp   (1,jp)  ,vzp   (1,jp) )
-
-!     iffour
-      if (iffour) then
-        do ilag=nbdinp-1,2,-1
-          call copy(vzlagp(1,ilag,jp),vzlagp(1,ilag-1,jp),ntot1)
-        enddo
-        call copy(vzlagp(1,1,jp),vzp(1,jp),ntot1)
-      endif
-
-
 c
       return
       end
@@ -138,14 +131,6 @@ C
       call nekuf   (bfxp(1,jp),bfyp(1,jp),bfzp(1,jp))
       call opcolv2 (bfxp(1,jp),bfyp(1,jp),bfzp(1,jp)
      $                              ,vtrans(1,1,1,1,ifield),bm1)
-
-!     iffour
-      if (iffour.and.(ndim.eq.2)) then
-        call col2(bfzp(1,jp),vtrans(1,1,1,1,ifield),nx1*ny1*nz1*nelv)
-        call col2(bfzp(1,jp),bm1,nx1*ny1*nz1*nelv)
-      endif
-
-
       time = time+dt
 c
       return
@@ -220,43 +205,6 @@ c
             bfxp(i,jp) = bfxp(i,jp)-tmp*ta1(i)
             bfyp(i,jp) = bfyp(i,jp)-tmp*ta2(i)
          enddo
-
-
-!        iffour
-!        Generate convective terms for w'   
-         if (iffour) then
-!          Save velocity
-           call copy(tb1,vx,ntot1)
-           call copy(tb2,vy,ntot1)
-           call copy(tb3,vz,ntot1)
-
-!          U <-- dU
-           call copy(vx,vxp(1,jp),ntot1)
-           call copy(vy,vyp(1,jp),ntot1)
-!           call copy(vz,vzp(1,jp),ntot1)
-           call rzero(vz,ntot1) 
-
-           call convop  (ta3,tb3)                                ! du.grad U
-           call opcopy  (vx,vy,vz,tb1,tb2,tb3)  ! Restore velocity
-           call copy    (vz,tb3,ntot1) 
-
-           do i=1,ntot1
-             tmp = bm1(i,1,1,1)*vtrans(i,1,1,1,ifield)
-             bfzp(i,jp) = bfzp(i,jp)-tmp*ta3(i)
-           enddo
-
-           call convop  (ta3,vxp(1,jp))       !  U.grad dU
-           do i=1,ntot1
-             tmp = bm1(i,1,1,1)*vtrans(i,1,1,1,ifield)
-             bfzp(i,jp) = bfzp(i,jp)-tmp*ta3(i)
-           enddo
-
-!          Need to add last term to all three components. 
-
-        endif     ! iffour
-
-
-
 c
       endif
 c
@@ -517,13 +465,6 @@ c
          call copy   (exz2p(1,jp),exz1p(1,jp),ntot1)
          call copy   (exz1p(1,jp),bfzp (1,jp),ntot1)
          call add2s1 (bfzp(1,jp),ta3,ab0,ntot1)
-
-!     iffour
-      elseif (iffour) then
-         call add3s2 (ta3,exz1p(1,jp),exz2p(1,jp),ab1,ab2,ntot1)
-         call copy   (exz2p(1,jp),exz1p(1,jp),ntot1)
-         call copy   (exz1p(1,jp),bfzp (1,jp),ntot1)
-         call add2s1 (bfzp(1,jp),ta3,ab0,ntot1)
       endif
 c
       return
@@ -553,13 +494,6 @@ C
       call cmult2(h2,vtrans(1,1,1,1,ifield),const,ntot1)
       call opcolv3c (tb1,tb2,tb3
      $              ,vxp(1,jp),vyp(1,jp),vzp(1,jp),bm1,bd(2))
-
-!     iffour
-      if (iffour) then
-        call col3(tb3,vzp(1,jp),bm1,ntot1)
-        call cmult(tb3,bd(2),ntot1)
-      endif
-
 C
       do ilag=2,nbd
          if (ifgeom) then
@@ -576,26 +510,6 @@ C
          call opadd2  (tb1,tb2,tb3,ta1,ta2,ta3)
       enddo
       call opadd2col (bfxp(1,jp),bfyp(1,jp),bfzp(1,jp),tb1,tb2,tb3,h2)
-
-!     iffour
-      if (iffour) then
-
-        do ilag=2,nbd
-           if (ifgeom) then
-              call col3(ta3,vzlagp(1,ilag-1,jp),bm1lag(1,1,1,1,ilag-1),
-     $                                ntot1) 
-              call cmult(ta3,bd(ilag+1),ntot1)           
-           else
-              call col3(ta3,vzlagp(1,ilag-1,jp),bm1,ntot1) 
-              call cmult(ta3,bd(ilag+1),ntot1)           
-           endif
-           call add2  (tb3,ta3,ntot1)
-        enddo
-        call add2col2 (bfzp(1,jp),tb3,h2,ntot1)
-
-      endif       ! iffour
-
-
 c
       return
       end

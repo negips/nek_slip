@@ -111,7 +111,6 @@ C     If any pre-solv, do pre-solv for all temperatur/passive scalar fields
          enddo
       endif
       jp = 0
-     
 
       call nekgsync()
       call restart(nfiles) !  Check restart files
@@ -122,16 +121,13 @@ C      ***** VELOCITY ******
 C     (If restarting for V, we're done,
 C     ...else, do pre-solv for fluid if requested.)
 
-      ifield = 1
-      if (ifprsl(ifield,jp)) call prsolvv
-
-
 C     Fortran function initial conditions for velocity.
       ifield = 1
       if (iffort(ifield,jp)) then
          if (nio.eq.0) write(6,*) 'call nekuic for vel  '
          call nekuic
       endif
+
 c
       if (ifpert) then
          ifield=1
@@ -177,7 +173,6 @@ C     Ensure that all processors have the same time as node 0.
       ntotv=nelv*nxyz1
       nn = nxyz1
       ntotg=nelgv*nn
-
       if (.not.ifdg) then
          ifield = 2
          if (ifflow) ifield = 1

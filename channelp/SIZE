@@ -14,7 +14,7 @@ c
       parameter (lxd=15)               ! GL  points for over-integration (dealiasing) 
       parameter (lx2=lx1-2)            ! GLL points for pressure (lx1 or lx1-2)
                                      
-      parameter (lelg=1536)            ! max number of global elements
+      parameter (lelg=300)             ! max number of global elements
       parameter (lpmin=1)              ! min number of MPI ranks 
       parameter (lelt=lelg/lpmin + 3)  ! max number of local elements per MPI rank
       parameter (ldimt=1)              ! max auxiliary fields (temperature + scalars)
@@ -24,7 +24,7 @@ c
       parameter (lelr=lelt)            ! max number of local elements per restart file
       parameter (lhis=1)               ! max history/monitoring points
       parameter (maxobj=1)             ! max number of objects
-      parameter (lpert=1)              ! max number of perturbations
+      parameter (lpert=2)              ! max number of perturbations
       parameter (toteq=1)              ! max number of conserved scalars in CMT
       parameter (nsessmax=1)           ! max sessions to NEKNEK
       parameter (lxo=lx1)              ! max GLL points on output (lxo>=lx1)
@@ -36,11 +36,9 @@ c
       parameter (lelx=1,lely=1,lelz=1) ! global tensor mesh dimensions
 
       parameter (lbelt=1)              ! lelt for mhd
-      parameter (lpelt=1)              ! lelt for linear stability
+      parameter (lpelt=300)              ! lelt for linear stability
       parameter (lcvelt=1)             ! lelt for cvode
 
       ! INTERNALS
       include 'SIZE.inc'
 
-      logical iffour
-      parameter (iffour = .true.)
