@@ -34,3 +34,4 @@
 # **/*.m
 *
 !Nek5000_3d/doc/html
+index.html
