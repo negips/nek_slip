@@ -59,7 +59,7 @@ c
       iconv = 0
       call rzero(x_gmres,ntot2)
 
-      do while(iconv.eq.0.and.iter.lt.100)
+      do while(iconv.eq.0.and.iter.lt.1000)
 
          if(iter.eq.0) then
                                                         !      -1
@@ -98,7 +98,12 @@ c           call copy(r_gmres,res,ntot2)
                call uzprec(z_gmres(1,j),w_gmres,h1,h2,intype,wp)
             else                                        !       -1
                call hsmg_solve(z_gmres(1,j),w_gmres)    ! z  = M   w
-c              call copy(z_gmres(1,j),w_gmres,ntot2)    ! z  = M   w
+
+!              prabal   
+!                                                        !             -1
+!               call hsmg_solve(z_gmres(1,j),w_gmres,.false.)    ! z  = M   w
+
+!              call copy(z_gmres(1,j),w_gmres,ntot2)    ! z  = M   w
             endif     
             etime_p = etime_p + dnekclock()-etime2
      

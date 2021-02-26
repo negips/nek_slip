@@ -103,6 +103,10 @@ c
 
             call init_weight_op
             if (param(43).eq.0) call hsmg_setup
+
+!           prabal
+!            call h1mg_setup
+
          endif
 
          call set_up_h1_crs

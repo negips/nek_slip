@@ -87,6 +87,12 @@ c-----------------------------------------------------------------------
         call initp_3ds
       endif
 
+      write(6,*) 'param40', param(40)
+      write(6,*) 'param41', param(41)
+      write(6,*) 'param42', param(42)
+      write(6,*) 'param43', param(43)
+      write(6,*) 'param44', param(44)
+
       do jp=1,2
         call outpost(vxp(1,jp),vyp(1,jp),vzp(1,jp),
      $               prp(1,jp),vzp(1,jp),'prt')
