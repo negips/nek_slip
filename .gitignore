@@ -27,4 +27,4 @@
 **/makenek
 **/compiler*
 **/out.*
-**/doc/*
+#**/doc/*
