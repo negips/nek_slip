@@ -4,7 +4,7 @@
 **/*.baseflow
 **/xyz*.fld*
 **/logfile
-**/log*
+**/log.*
 **/*.sch
 **/*.sch1
 **/*.log*
@@ -27,4 +27,4 @@
 **/makenek
 **/compiler*
 **/out.*
-#**/doc/*
+!Nek5000_3d/doc/*
